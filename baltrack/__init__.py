@@ -42,6 +42,13 @@ async def main():
         help="DB-API connection URI",
     )
     parser.add_argument(
+        "--log-progress",
+        type=float,
+        default=None,
+        metavar="N",
+        help="log progress every N seconds",
+    )
+    parser.add_argument(
         "token_addresses",
         type=to_checksum_address,
         nargs="+",
@@ -62,6 +69,7 @@ async def main():
                 token_address=to_checksum_address(token_address),
                 w3=w3,
                 session_maker=session_maker,
+                log_progress_period=args.log_progress,
             )
         )
         for token_address in token_addresses
@@ -85,6 +93,7 @@ async def scrape_token(
     token_address: ChecksumAddress,
     w3: AsyncWeb3,
     session_maker: async_sessionmaker,
+    log_progress_period: float | None = None,
 ):
     # await migrate(session_maker)
     tracker = SQLBalanceTracker(
@@ -126,7 +135,11 @@ async def scrape_token(
             if done:
                 return
 
-    progress_logger_task = asyncio.create_task(log_progress())
+    progress_logger_task = (
+        None
+        if log_progress_period is None
+        else asyncio.create_task(log_progress(log_progress_period))
+    )
     try:
         async with (
             session_maker() as session,
@@ -179,5 +192,6 @@ async def scrape_token(
             await session.commit()
     finally:
         done = True
-        await asyncio.gather(progress_logger_task)
+        if progress_logger_task is not None:
+            await progress_logger_task
     logger.debug("finished", num_xfers=num_xfers, block=last_block)
