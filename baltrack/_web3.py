@@ -83,8 +83,8 @@ async def gen_transfers(
             stride = suggested_end - suggested_start + 1
             logger.info(
                 "retrying with suggested range",
-                start=start,
-                end=end,
+                start=suggested_start,
+                end=suggested_end,
                 stride=stride,
             )
             continue
