@@ -147,6 +147,25 @@ async def scrape_token(
                     last_block = block_number
                 log_pos = LogPos(block_number, log["logIndex"])
                 if sender != recipient:
+                    sender_bal = await tracker.get(sender)
+                    recipient_bal = await tracker.get(recipient)
+                    if (
+                        sender_bal is not None
+                        and sender_bal.log_pos >= log_pos
+                        or recipient_bal is not None
+                        and recipient_bal.log_pos >= log_pos
+                    ):
+                        _logger.warning(
+                            "skipping stale tx",
+                            tx_hash=str(log["transactionHash"]),
+                            log_pos=log_pos,
+                            value=log_pos,
+                            sender=sender,
+                            sender_bal=sender_bal,
+                            recipient=recipient,
+                            recipient_bal=recipient_bal,
+                        )
+                        continue
                     if sender != CHECKSUM_ADDRESSS_ZERO:
                         await tracker.adjust(
                             sender, Balance(value=-value, log_pos=log_pos)
