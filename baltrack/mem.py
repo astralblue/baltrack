@@ -24,7 +24,9 @@ class InMemoryBalanceTracker(AbstractBalanceTracker):
         return self.__balances.get(address)
 
     @override
-    async def adjust(self, address: ChecksumAddress, delta: Balance) -> Balance:
+    async def adjust(
+        self, address: ChecksumAddress, delta: Balance
+    ) -> Balance:
         try:
             balance = self.__balances[address]
         except KeyError:

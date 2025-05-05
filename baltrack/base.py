@@ -17,7 +17,9 @@ class AbstractBalanceTracker:
         """Reset (forget) all balances."""
 
     @abstractmethod
-    async def adjust(self, address: ChecksumAddress, delta: Balance) -> Balance:
+    async def adjust(
+        self, address: ChecksumAddress, delta: Balance
+    ) -> Balance:
         """
         Adjust a wallet balance.
 
