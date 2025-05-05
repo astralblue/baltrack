@@ -13,7 +13,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from web3 import AsyncWeb3
 from web3.constants import CHECKSUM_ADDRESSS_ZERO
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 from ._web3 import (
     DEFAULT_CHAIN_ECOSYSTEM,
