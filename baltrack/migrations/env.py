@@ -3,11 +3,12 @@ import os
 from importlib import resources
 from logging.config import fileConfig
 
-import baltrack.sql.model
 from alembic import context
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
+
+import baltrack.sql.model
 
 with resources.path("baltrack", "migrations") as path:
     script_location = str(path)
