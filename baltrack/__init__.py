@@ -133,7 +133,7 @@ async def scrape_token(
             tracker.bound_to_session(session),
         ):
             async for log in gen_transfers(
-                w3, token_address, first, last, min_stride=2000
+                w3, token_address, first, last, min_stride=200
             ):
                 args = log["args"]
                 sender = to_checksum_address(args["from"])
