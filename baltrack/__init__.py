@@ -112,9 +112,9 @@ async def scrape_token(
     last_block = None
     done = False
 
-    async def log_progress():
+    async def log_progress(period: float = 10.0):
         time = asyncio.get_running_loop().time
-        for due in count(time(), 1):
+        for due in count(time(), period):
             now = time()
             await asyncio.sleep(due - now)
             logger.debug("in progress", num_xfers=num_xfers, block=last_block)
