@@ -55,16 +55,19 @@ async def gen_transfers(
     to_block: int,
     *,
     min_stride: int = 1,
+    max_stride: int = 500,
 ) -> AsyncIterable[Mapping]:
     logger = _logger.bind(token_address=address)
     contract = w3.eth.contract(address, abi=ERC20_TRANSFER_ABI)
     start = from_block
-    stride = 1000000
+    stride = max_stride
     time = asyncio.get_running_loop().time
     while start <= to_block:
-        stride = max(stride, min_stride)
+        stride = min(max(stride, min_stride), max_stride)
+        if stride < max_stride:
+            logger.debug("stride ramping up", cur=stride, max=max_stride)
         end = min(start + stride - 1, to_block)
-        # logger.debug("scanning", start=start, end=end, stride=stride)
+        logger.debug("scanning", start=start, end=end, stride=stride)
         try:
             logs = await contract.events.Transfer.get_logs(
                 from_block=start, to_block=end
@@ -72,9 +75,21 @@ async def gen_transfers(
         except Web3RPCError as e:
             message = e.rpc_response.get("error", {}).get("message")
             if message is None:
+                if stride > min_stride:
+                    logger.debug("halving stride on error", stride=stride)
+                    stride //= 2
+                    continue
                 raise
             match = _BLOCK_RANGE_SUGGESTION_RE.search(message)
             if match is None:
+                if stride > min_stride:
+                    logger.debug(
+                        "halving stride on error",
+                        stride=stride,
+                        message=message,
+                    )
+                    stride //= 2
+                    continue
                 raise
             suggested_start = int(match.group(1), 0)
             suggested_end = int(match.group(2), 0)
@@ -88,6 +103,14 @@ async def gen_transfers(
                 stride=stride,
             )
             continue
+        except Exception as e:
+            if stride > min_stride:
+                logger.debug(
+                    "halving stride on error", stride=stride, error=str(e)
+                )
+                stride //= 2
+                continue
+            raise
         else:
             stride = stride * 12 // 10
         logs = sorted(logs, key=lambda l: l["blockNumber"])
