@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import argparse
-import asyncio
 import re
 from collections.abc import AsyncIterable, Mapping
 
@@ -65,7 +64,6 @@ async def gen_transfers(
     contract = w3.eth.contract(address, abi=ERC20_TRANSFER_ABI)
     start = from_block
     stride = max_stride
-    time = asyncio.get_running_loop().time
     while start <= to_block:
         stride = min(max(stride, min_stride), max_stride)
         if stride < max_stride:
