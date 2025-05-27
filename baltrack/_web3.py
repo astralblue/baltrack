@@ -113,7 +113,7 @@ async def gen_transfers(
             raise
         else:
             stride = stride * 12 // 10
-        logs = sorted(logs, key=lambda l: l["blockNumber"])
+        logs = sorted(logs, key=lambda l: (l["blockNumber"], l["logIndex"]))
         for log in logs:
             if start <= log["blockNumber"] <= end:
                 yield log
