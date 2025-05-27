@@ -1,13 +1,19 @@
 #!/bin/sh
-case $# in
-	0)
-		echo "missing tool directory argument (for isort/black)" >&2
-		exit 64
-		;;
+unset -v tooldir opt
+OPTIND=1
+while getopts :b: opt
+do
+	case "${opt}" in
+		'?') echo "unrecognized option -${OPTARG}" >&2; exit 64;;
+		':') echo "missing argument for -${OPTARG}" >&2; exit 64;;
+		b) tooldir="${OPTARG}";;
+		*) echo "unhandled option -${opt}" >&2; exit 70;;
+	esac
+done
+shift $((OPTIND - 1))
+case "${tooldir+set}" in
+	set) PATH="${tooldir}${PATH+":${PATH}"}"; export PATH;;
 esac
-PATH="${1}${PATH+":${PATH}"}"
-export PATH
-shift 1
 case $# in
 	0)
 		set -- .
