@@ -48,14 +48,18 @@ _BLOCK_RANGE_SUGGESTION_RE = re.compile(
 )
 
 
+MIN_STRIDE = 1
+MAX_STRIDE = 500
+
+
 async def gen_transfers(
     w3: AsyncWeb3,
     address: ChecksumAddress,
     from_block: int,
     to_block: int,
     *,
-    min_stride: int = 1,
-    max_stride: int = 500,
+    min_stride: int = MIN_STRIDE,
+    max_stride: int = MAX_STRIDE,
 ) -> AsyncIterable[Mapping]:
     logger = _logger.bind(token_address=address)
     contract = w3.eth.contract(address, abi=ERC20_TRANSFER_ABI)

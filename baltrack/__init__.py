@@ -18,6 +18,8 @@ __version__ = "0.2.1"
 from ._web3 import (
     DEFAULT_CHAIN_ECOSYSTEM,
     DEFAULT_CHAIN_NETWORK,
+    MAX_STRIDE,
+    MIN_STRIDE,
     configure_argparser,
     gen_transfers,
     get_contract_deploy_block,
@@ -49,6 +51,20 @@ async def main():
         help="log progress every N seconds",
     )
     parser.add_argument(
+        "--min-stride",
+        type=int,
+        default=MIN_STRIDE,
+        metavar="N",
+        help="minimum number of consecutive blocks to scan at a time",
+    )
+    parser.add_argument(
+        "--max-stride",
+        type=int,
+        default=MAX_STRIDE,
+        metavar="N",
+        help="maximum number of consecutive blocks to scan at a time",
+    )
+    parser.add_argument(
         "token_addresses",
         type=to_checksum_address,
         nargs="+",
@@ -69,6 +85,8 @@ async def main():
                 token_address=to_checksum_address(token_address),
                 w3=w3,
                 session_maker=session_maker,
+                min_stride=args.min_stride,
+                max_stride=args.max_stride,
                 log_progress_period=args.log_progress,
             )
         )
@@ -94,6 +112,8 @@ async def scrape_token(
     w3: AsyncWeb3,
     session_maker: async_sessionmaker,
     log_progress_period: float | None = None,
+    min_stride: int = MIN_STRIDE,
+    max_stride: int = MAX_STRIDE,
 ):
     # await migrate(session_maker)
     tracker = SQLBalanceTracker(
@@ -147,7 +167,12 @@ async def scrape_token(
             tracker.bound_to_session(session),
         ):
             async for log in gen_transfers(
-                w3, token_address, first, last, min_stride=200
+                w3,
+                token_address,
+                first,
+                last,
+                min_stride=min_stride,
+                max_stride=max_stride,
             ):
                 args = log["args"]
                 sender = to_checksum_address(args["from"])
